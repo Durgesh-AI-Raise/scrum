@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Amazon Review Data",
+  "description": "Schema for Amazon product review data in ARIS",
+  "type": "object",
+  "required": ["reviewId", "productId", "userId", "rating", "reviewText", "reviewDate", "ingestionTimestamp"],
+  "properties": {
+    "reviewId": { "type": "string", "description": "Unique identifier for the review" },
+    "productId": { "type": "string", "description": "Amazon Standard Identification Number (ASIN) of the product" },
+    "userId": { "type": "string", "description": "Hashed or anonymized user identifier" },
+    "rating": { "type": "integer", "minimum": 1, "maximum": 5, "description": "Star rating of the review" },
+    "reviewText": { "type": "string", "description": "Full text content of the review" },
+    "reviewTitle": { "type": "string", "description": "Title of the review", "nullable": true },
+    "reviewDate": { "type": "string", "format": "date-time", "description": "Date and time the review was originally posted" },
+    "helpfulVotes": { "type": "integer", "minimum": 0, "description": "Number of helpful votes for the review" },
+    "verifiedPurchase": { "type": "boolean", "description": "Indicates if the review is from a verified purchase" },
+    "reviewerName": { "type": "string", "description": "Hashed or anonymized reviewer name", "nullable": true },
+    "ipAddressHash": { "type": "string", "description": "Hashed IP address associated with the review", "nullable": true },
+    "deviceFingerprintHash": { "type": "string", "description": "Hashed device fingerprint associated with the review", "nullable": true },
+    "sourceSystem": { "type": "string", "description": "Source system of the review data (e.g., AMAZON_API, SCRAPED)", "enum": ["AMAZON_API", "SCRAPED"] },
+    "ingestionTimestamp": { "type": "string", "format": "date-time", "description": "Timestamp when the review was ingested into ARIS" }
+  },
+  "additionalProperties": false
+}
