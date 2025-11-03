@@ -1,0 +1,31 @@
+
+PUT /amazon_reviews
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "review_id": { "type": "keyword" },
+      "product_asin": { "type": "keyword" },
+      "reviewer_id": { "type": "keyword" },
+      "review_title": { "type": "text" },
+      "review_text": { "type": "text" },
+      "star_rating": { "type": "integer" },
+      "review_date": { "type": "date" },
+      "country_code": { "type": "keyword" },
+      "is_flagged": { "type": "boolean", "null_value": false },
+      "flag_reasons": { "type": "keyword" },
+      "manual_status": { "type": "keyword", "null_value": "pending" },
+      "manual_reason": { "type": "text" },
+      "manual_tags": { "type": "keyword" },
+      "metadata": {
+        "properties": {
+          "source_ip": { "type": "ip" },
+          "device_type": { "type": "keyword" }
+        }
+      }
+    }
+  }
+}
