@@ -1,0 +1,34 @@
+[
+  {
+    "asin": "B00005BPAD",
+    "reviewerID": "A1ABCDE123FGHI",
+    "overall": 5,
+    "reviewText": "This product is fantastic! Highly recommend it.",
+    "reviewTime": "01 15, 2023",
+    "verified": true
+  },
+  {
+    "asin": "B00005BPAD",
+    "reviewerID": "B2CDEFG456HJKL",
+    "overall": 1,
+    "reviewText": "Absolute waste of money. Do not buy!",
+    "reviewTime": "01 16, 2023",
+    "verified": false
+  },
+  {
+    "asin": "C3HIJKL789MNOP",
+    "reviewerID": "C3HIJKL789MNOP",
+    "overall": 4,
+    "reviewText": "Pretty good, works as expected.",
+    "reviewTime": "02 01, 2023",
+    "verified": true
+  },
+  {
+    "asin": "D4PQRST012UVWXY",
+    "reviewerID": "D4PQRST012UVWXY",
+    "overall": 2,
+    "reviewText": "Item arrived broken. Very disappointed.",
+    "reviewTime": "02 05, 2023",
+    "verified": false
+  }
+]
