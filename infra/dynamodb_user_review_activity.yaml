@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: DynamoDB Table for User Review Activity
+
+Resources:
+  UserReviewActivityTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: UserReviewActivity
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: reviewDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: reviewDate
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST # On-demand for flexible scaling
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Project
+          Value: AmazonReviewAbuseDetection
+        - Key: Environment
+          Value: Development
+
+Outputs:
+  UserReviewActivityTableName:
+    Description: Name of the UserReviewActivity DynamoDB Table
+    Value: !Ref UserReviewActivityTable
+  UserReviewActivityTableArn:
+    Description: ARN of the UserReviewActivity DynamoDB Table
+    Value: !GetAtt UserReviewActivityTable.Arn
