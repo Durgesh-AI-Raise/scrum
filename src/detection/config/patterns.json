@@ -1,0 +1,42 @@
+[
+    {
+        "pattern_id": "P001",
+        "name": "Identical Reviews",
+        "description": "Detects reviews with identical content posted by potentially different reviewers or on different products within a short timeframe.",
+        "type": "Content-based",
+        "configuration": {
+            "min_content_length": 50,
+            "similarity_threshold": 0.95,
+            "time_window_hours": 24,
+            "fields_to_compare": ["content", "title"]
+        },
+        "severity": "High",
+        "enabled": true
+    },
+    {
+        "pattern_id": "P002",
+        "name": "Sudden Spike in Reviews",
+        "description": "Identifies unusual surges in the number of reviews for a product within a defined period.",
+        "type": "Behavioral",
+        "configuration": {
+            "time_window_hours": 24,
+            "percentage_increase_threshold": 200,
+            "absolute_increase_threshold": 50,
+            "baseline_period_days": 7
+        },
+        "severity": "Medium",
+        "enabled": true
+    },
+    {
+        "pattern_id": "P003",
+        "name": "New Account, No Purchase History",
+        "description": "Flags reviews submitted by accounts that are newly created and have no prior purchase history associated with them.",
+        "type": "Behavioral",
+        "configuration": {
+            "account_age_threshold_days": 7,
+            "min_purchase_history": 0
+        },
+        "severity": "Low",
+        "enabled": true
+    }
+]
