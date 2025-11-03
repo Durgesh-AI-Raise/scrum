@@ -1,0 +1,5 @@
+{
+  "HATE_SPEECH": ["hate_word_1", "offensive_term_x", "idiot", "stupid"],
+  "PERSONAL_INFO": ["email@", "phone_number_pattern", "social_security", "ssn", "credit card number", "123-456-7890"],
+  "SPAM": ["free_offer", "buy_now", "discount_code_xyz", "visit my website", "click here", "promo code"]
+}
