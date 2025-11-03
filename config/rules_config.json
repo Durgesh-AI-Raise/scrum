@@ -1,0 +1,11 @@
+{
+    "keyword_matching_rule": {
+        "enabled": true,
+        "keywords": ["scam", "fraud", "fake review", "spam", "unethical", "bribe", "discount for review", "giveaway", "free product"]
+    },
+    "repetitive_posting_rule": {
+        "enabled": false,
+        "time_window_hours": 24,
+        "max_reviews_in_window": 3
+    }
+}
