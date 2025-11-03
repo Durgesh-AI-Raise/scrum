@@ -1,0 +1,26 @@
+{
+    "negative_keywords": [
+        "scam",
+        "fraud",
+        "fake",
+        "horrible",
+        "terrible",
+        "bad quality",
+        "rip-off",
+        "disappointing",
+        "broken",
+        "defective"
+    ],
+    "enable_sentiment_analysis": true,
+    "sentiment_threshold": -0.8,
+    "enable_repetition_check": true,
+    "enable_caps_check": true,
+    "caps_threshold": 0.5,
+    "spam_phrases": [
+        "free gift",
+        "click here",
+        "win now",
+        "limited time offer",
+        "buy now"
+    ]
+}
