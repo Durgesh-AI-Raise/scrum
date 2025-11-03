@@ -1,0 +1,74 @@
+<!-- src/frontend/dashboard.html (conceptual mockup) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flagged Reviews Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .dashboard-controls { margin-bottom: 20px; }
+        .dashboard-controls input, .dashboard-controls select { margin-right: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .severity-high { color: red; font-weight: bold; }
+        .severity-medium { color: orange; }
+        .severity-low { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Flagged Reviews Dashboard</h1>
+
+    <div class="dashboard-controls">
+        <input type="text" placeholder="Search by Review ID or Product ID">
+        <select>
+            <option value="">Filter by Severity</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+        </select>
+        <button>Apply Filters</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Review ID</th>
+                <th>Product ID</th>
+                <th>User ID</th>
+                <th>Rating</th>
+                <th>Snippet</th>
+                <th>Flagging Reasons</th>
+                <th>Severity</th>
+                <th>Flagged On</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Example Row (will be dynamically populated) -->
+            <tr>
+                <td>review123</td>
+                <td>prodA</td>
+                <td>userX</td>
+                <td>1</td>
+                <td>This product is terrible...</td>
+                <td>Suspicious review velocity for new accounts.</td>
+                <td class="severity-high">HIGH</td>
+                <td>2023-10-27 10:05:00</td>
+            </tr>
+            <tr>
+                <td>review456</td>
+                <td>prodB</td>
+                <td>userY</td>
+                <td>5</td>
+                <td>Identical content found...</td>
+                <td>Identical review content found across multiple reviews.</td>
+                <td class="severity-medium">MEDIUM</td>
+                <td>2023-10-27 11:15:20</td>
+            </tr>
+            <!-- More rows will be added here -->
+        </tbody>
+    </table>
+</body>
+</html>
