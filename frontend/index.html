@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderator Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: #ffffff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        th, td { border: 1px solid #e0e0e0; padding: 12px 15px; text-align: left; }
+        th { background-color: #3498db; color: white; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        .no-reviews { text-align: center; color: #7f8c8d; padding: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Flagged Reviews Dashboard</h1>
+    <table id="flaggedReviewsTable">
+        <thead>
+            <tr>
+                <th>Review ID</th>
+                <th>Product ID</th>
+                <th>User ID</th>
+                <th>Review Text</th>
+                <th>Rating</th>
+                <th>Flag Reason</th>
+                <th>Flag Date</th>
+                <th>Submission Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Flagged reviews will be inserted here by JavaScript -->
+            <tr><td colspan="8" class="no-reviews">Loading flagged reviews...</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchFlaggedReviews();
+        });
+
+        async function fetchFlaggedReviews() {
+            try {
+                const response = await fetch('/flagged-reviews'); // Assumes backend is on the same host/port
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const reviews = await response.json();
+                const tableBody = document.getElementById('flaggedReviewsTable').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = ''; // Clear loading message/previous rows
+
+                if (reviews.length === 0) {
+                    const row = tableBody.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = 8;
+                    cell.className = 'no-reviews';
+                    cell.textContent = 'No flagged reviews found.';
+                    return;
+                }
+
+                reviews.forEach(review => {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).textContent = review.review_id;
+                    row.insertCell(1).textContent = review.product_id;
+                    row.insertCell(2).textContent = review.user_id;
+                    row.insertCell(3).textContent = review.review_text.substring(0, 100) + (review.review_text.length > 100 ? '...' : ''); // Truncate long reviews
+                    row.insertCell(4).textContent = review.rating;
+                    row.insertCell(5).textContent = review.flag_reason;
+                    row.insertCell(6).textContent = review.flag_date ? new Date(review.flag_date).toLocaleString() : 'N/A';
+                    row.insertCell(7).textContent = review.submission_date ? new Date(review.submission_date).toLocaleString() : 'N/A';
+                });
+            } catch (error) {
+                console.error('Error fetching flagged reviews:', error);
+                const tableBody = document.getElementById('flaggedReviewsTable').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = '<tr><td colspan="8" style="color: red; text-align: center;">Error loading flagged reviews. Please try again later.</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>
