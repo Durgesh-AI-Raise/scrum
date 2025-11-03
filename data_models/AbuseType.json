@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AbuseType",
+  "description": "Schema for defining different types of review abuse in ARIS",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "severity",
+    "created_at",
+    "updated_at",
+    "is_active"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the abuse type"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the abuse type (e.g., 'Fake Reviews')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the abuse type"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "Severity level of the abuse type"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the abuse type was created"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the abuse type was last updated"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Flag indicating if the abuse type is currently active for detection"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created_by": {
+          "type": "string",
+          "description": "ID of the user or system that created this abuse type"
+        },
+        "last_modified_by": {
+          "type": "string",
+          "description": "ID of the user or system that last modified this abuse type"
+        }
+      },
+      "description": "Metadata about the creation and modification of the abuse type"
+    },
+    "detection_rules": {
+      "type": "array",
+      "description": "List of rules associated with this abuse type for detection",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "rule_name", "rule_type", "status", "configuration"],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the detection rule"
+          },
+          "rule_name": {
+            "type": "string",
+            "description": "Name of the detection rule"
+          },
+          "rule_type": {
+            "type": "string",
+            "enum": ["BEHAVIORAL_ML", "NLP_MODEL", "KEYWORD_MATCH", "STATIC_THRESHOLD", "CUSTOM_SCRIPT"],
+            "description": "Type of detection rule (e.g., ML model, NLP, keyword matching)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE", "DRAFT"],
+            "description": "Status of the detection rule"
+          },
+          "configuration": {
+            "type": "object",
+            "description": "Configuration specific to the rule type (e.g., model ID, thresholds, keywords)",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
