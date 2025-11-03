@@ -1,0 +1,37 @@
+{
+    "categories": [
+        {
+            "name": "Paid Review Indicators",
+            "keywords": [
+                "paid review",
+                "free product for review",
+                "compensated for review",
+                "got this for free",
+                "sponsored review"
+            ]
+        },
+        {
+            "name": "Profanity",
+            "keywords": [
+                "fuck", "shit", "bitch", "asshole", "cunt"
+            ]
+        },
+        {
+            "name": "Spam/Self-Promotion",
+            "keywords": [
+                "buy now",
+                "check out my store",
+                "discount code",
+                "visit my website"
+            ]
+        },
+        {
+            "name": "Misinformation/Harmful Content",
+            "keywords": [
+                "fake news",
+                "conspiracy theory",
+                "harmful chemicals"
+            ]
+        }
+    ]
+}
