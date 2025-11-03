@@ -1,0 +1,239 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Monitoring for Real-time Review Ingestion Pipeline
+
+Parameters:
+  NotificationEmail:
+    Type: String
+    Description: Email address to send CloudWatch alarm notifications to.
+
+Resources:
+  # SNS Topic for Alarms
+  AlarmSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ReviewIngestionPipelineAlarms
+      DisplayName: ReviewIngestion Pipeline Alarms
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref NotificationEmail
+
+  # Kinesis Data Stream Alarms
+  KinesisWriteThroughputExceededAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Kinesis-WriteThroughputExceeded
+      AlarmDescription: "Alarm when Kinesis Write Provisioned Throughput Exceeded"
+      MetricName: WriteProvisionedThroughputExceeded
+      Namespace: AWS/Kinesis
+      Statistic: Sum
+      Period: 300 # 5 minutes
+      EvaluationPeriods: 1
+      Threshold: 0 # Any occurrence means a problem
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: StreamName
+          Value: real-time-review-stream # Name of Kinesis stream from Task 1.1
+      AlarmActions:
+        - !Ref AlarmSNSTopic
+      OKActions:
+        - !Ref AlarmSNSTopic
+
+  KinesisReadThroughputExceededAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Kinesis-ReadThroughputExceeded
+      AlarmDescription: "Alarm when Kinesis Read Provisioned Throughput Exceeded"
+      MetricName: ReadProvisionedThroughputExceeded
+      Namespace: AWS/Kinesis
+      Statistic: Sum
+      Period: 300 # 5 minutes
+      EvaluationPeriods: 1
+      Threshold: 0 # Any occurrence means a problem
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: StreamName
+          Value: real-time-review-stream # Name of Kinesis stream from Task 1.1
+      AlarmActions:
+        - !Ref AlarmSNSTopic
+      OKActions:
+        - !Ref AlarmSNSTopic
+
+  KinesisIteratorAgeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: Kinesis-ConsumerIteratorAgeHigh
+      AlarmDescription: "Alarm when Kinesis consumer iterator age is consistently high (consumer lagging)"
+      MetricName: GetRecords.IteratorAgeMilliseconds
+      Namespace: AWS/Kinesis
+      Statistic: Maximum
+      Period: 300 # 5 minutes
+      EvaluationPeriods: 2 # Trigger if high for 10 minutes
+      Threshold: 600000 # 10 minutes (600,000 milliseconds)
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: StreamName
+          Value: real-time-review-stream # Name of Kinesis stream from Task 1.1
+      AlarmActions:
+        - !Ref AlarmSNSTopic
+      OKActions:
+        - !Ref AlarmSNSTopic
+
+  # Lambda Alarms (Assuming Lambda function names 'ReviewSubmissionLambda' and 'KinesisReviewConsumerLambda')
+  ReviewSubmissionLambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ReviewSubmissionLambda-Errors
+      AlarmDescription: "Alarm when Review Submission Lambda experiences errors"
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0 # Any error
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: FunctionName
+          Value: ReviewSubmissionLambda # Name of the Lambda from Task 1.3
+      AlarmActions:
+        - !Ref AlarmSNSTopic
+      OKActions:
+        - !Ref AlarmSNSTopic
+
+  KinesisConsumerLambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: KinesisConsumerLambda-Errors
+      AlarmDescription: "Alarm when Kinesis Consumer Lambda experiences errors"
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0 # Any error
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: FunctionName
+          Value: KinesisReviewConsumerLambda # Name of the Lambda from Task 1.2
+      AlarmActions:
+        - !Ref AlarmSNSTopic
+      OKActions:
+        - !Ref AlarmSNSTopic
+
+  # CloudWatch Dashboard
+  IngestionPipelineDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: RealTimeReviewIngestionPipeline
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/Kinesis", "IncomingRecords", "StreamName", "real-time-review-stream" ],
+                  [ ".", "IncomingBytes", ".", "." ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Kinesis Incoming Data",
+                "stat": "Sum",
+                "period": 300
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/Kinesis", "ReadProvisionedThroughputExceeded", "StreamName", "real-time-review-stream" ],
+                  [ ".", "WriteProvisionedThroughputExceeded", ".", "." ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Kinesis Throughput Exceeded",
+                "stat": "Sum",
+                "period": 300
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/Lambda", "Invocations", "FunctionName", "ReviewSubmissionLambda" ],
+                  [ ".", "Errors", ".", ".", { "stat": "Sum" } ],
+                  [ ".", "Throttles", ".", ".", { "stat": "Sum" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Review Submission Lambda Health",
+                "period": 300
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/Lambda", "Invocations", "FunctionName", "KinesisReviewConsumerLambda" ],
+                  [ ".", "Errors", ".", ".", { "stat": "Sum" } ],
+                  [ ".", "Throttles", ".", ".", { "stat": "Sum" } ],
+                  [ ".", "IteratorAge", ".", "." ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Kinesis Consumer Lambda Health",
+                "period": 300
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/Kinesis", "GetRecords.IteratorAgeMilliseconds", "StreamName", "real-time-review-stream" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Kinesis Consumer Lag (Iterator Age)",
+                "stat": "Maximum",
+                "period": 300
+              }
+            }
+          ]
+        }
+
+Outputs:
+  AlarmSNSTopicArn:
+    Description: ARN of the SNS Topic for CloudWatch Alarms
+    Value: !Ref AlarmSNSTopic
+  CloudWatchDashboardUrl:
+    Description: URL of the CloudWatch Dashboard
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=RealTimeReviewIngestionPipeline"
