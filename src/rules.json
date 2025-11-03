@@ -1,0 +1,32 @@
+[
+    {
+        "rule_id": "velocity_spike_1",
+        "description": "Reviews from new accounts for a single product with high velocity.",
+        "conditions": {
+            "account_age": {"operator": "<", "value": "7 days"},
+            "review_velocity_per_product": {"operator": ">", "value": "10/hour"}
+        },
+        "severity": "HIGH",
+        "flag_reason": "Suspicious review velocity for new accounts."
+    },
+    {
+        "rule_id": "identical_content_1",
+        "description": "Identical review content across multiple reviews.",
+        "conditions": {
+            "review_content": {"operator": "duplicates_across_products", "threshold": 3}
+        },
+        "severity": "MEDIUM",
+        "flag_reason": "Identical review content found across multiple reviews."
+    },
+    {
+        "rule_id": "low_rating_new_product",
+        "description": "Low rating reviews on newly launched products from new accounts.",
+        "conditions": {
+            "product_launch_age": {"operator": "<", "value": "30 days"},
+            "account_age": {"operator": "<", "value": "14 days"},
+            "rating": {"operator": "<=", "value": 2}
+        },
+        "severity": "MEDIUM",
+        "flag_reason": "Low rating from new account on new product."
+    }
+]
