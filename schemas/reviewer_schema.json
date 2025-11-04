@@ -1,0 +1,13 @@
+{
+  "title": "Reviewer Schema",
+  "type": "object",
+  "properties": {
+    "reviewer_id": { "type": "string", "format": "uuid" },
+    "username": { "type": "string" },
+    "email": { "type": "string", "format": "email" },
+    "registration_date": { "type": "string", "format": "date-time" },
+    "country": { "type": "string" },
+    "total_reviews": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["reviewer_id", "username", "registration_date"]
+}
