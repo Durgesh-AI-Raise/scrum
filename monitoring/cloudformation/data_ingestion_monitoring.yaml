@@ -1,0 +1,232 @@
+# monitoring/cloudformation/data_ingestion_monitoring.yaml
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation stack for monitoring and alerting of Amazon Review Data Ingestion Pipeline.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Name of the environment (e.g., dev, test, prod)
+  NotificationEmail:
+    Type: String
+    Description: Email address for critical alerts
+    AllowedPattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+    ConstraintDescription: Must be a valid email address.
+  KinesisStreamName:
+    Type: String
+    Description: Name of the Kinesis Data Stream for raw reviews
+  S3BucketName:
+    Type: String
+    Description: Name of the S3 bucket where processed reviews are stored
+
+Resources:
+  # SNS Topic for Critical Alerts
+  CriticalAlertSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub "${EnvironmentName}-ReviewIngestion-CriticalAlerts"
+      TopicName: !Sub "${EnvironmentName}-ReviewIngestion-CriticalAlerts"
+      Subscription:
+        - Endpoint: !Ref NotificationEmail
+          Protocol: email
+
+  # CloudWatch Alarms for Kinesis Throughput
+  KinesisWriteThroughputExceededAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-Kinesis-WriteThroughputExceeded"
+      AlarmDescription: "Alarm when Kinesis PutRecord.Success is low or WriteProvisionedThroughputExceeded is high"
+      MetricName: WriteProvisionedThroughputExceeded
+      Namespace: AWS/Kinesis
+      Statistic: Sum
+      Period: 300 # 5 minutes
+      EvaluationPeriods: 1
+      Threshold: 0 # Any occurrence is bad
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: StreamName
+          Value: !Ref KinesisStreamName
+      AlarmActions:
+        - !Ref CriticalAlertSNSTopic
+
+  KinesisReadThroughputExceededAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-Kinesis-ReadThroughputExceeded"
+      AlarmDescription: "Alarm when Kinesis GetRecords.Success is low or ReadProvisionedThroughputExceeded is high"
+      MetricName: ReadProvisionedThroughputExceeded
+      Namespace: AWS/Kinesis
+      Statistic: Sum
+      Period: 300 # 5 minutes
+      EvaluationPeriods: 1
+      Threshold: 0 # Any occurrence is bad
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: StreamName
+          Value: !Ref KinesisStreamName
+      AlarmActions:
+        - !Ref CriticalAlertSNSTopic
+
+  # CloudWatch Alarms for Flink Job (assuming Flink pushes metrics to CloudWatch)
+  # These are placeholders and depend on actual Flink metric names
+  FlinkJobRestartAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-Flink-JobRestartCountHigh"
+      AlarmDescription: "Alarm when Flink job restart count is high, indicating instability."
+      MetricName: NumberOfRestarts # Placeholder metric name
+      Namespace: Flink/ApplicationMetrics # Placeholder namespace
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 2 # More than 2 restarts in 10 minutes
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: ApplicationName
+          Value: !Sub "${EnvironmentName}-AmazonReviewIngestion"
+      AlarmActions:
+        - !Ref CriticalAlertSNSTopic
+
+  FlinkJobLatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-Flink-IngestionLatencyHigh"
+      AlarmDescription: "Alarm when Flink ingestion latency is consistently high."
+      MetricName: SourceLatencyMillis # Placeholder metric name for end-to-end latency
+      Namespace: Flink/ApplicationMetrics # Placeholder namespace
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 3
+      Threshold: 60000 # Average latency > 60 seconds (1 minute)
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: ApplicationName
+          Value: !Sub "${EnvironmentName}-AmazonReviewIngestion"
+      AlarmActions:
+        - !Ref CriticalAlertSNSTopic
+
+  # CloudWatch Alarms for S3 Writes
+  S3PutRequestErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-S3-PutRequestErrors"
+      AlarmDescription: "Alarm when S3 Put Request Errors are detected for the processed reviews bucket."
+      MetricName: 4xxErrors # Or 5xxErrors
+      Namespace: AWS/S3
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0 # Any error is bad
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: BucketName
+          Value: !Ref S3BucketName
+        - Name: Operation
+          Value: PutObject
+      AlarmActions:
+        - !Ref CriticalAlertSNSTopic
+
+  # CloudWatch Dashboard
+  IngestionDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${EnvironmentName}-AmazonReviewIngestionDashboard"
+      DashboardBody:
+        !Sub |
+          {
+            "widgets": [
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 0,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    ["AWS/Kinesis", "IncomingBytes", "StreamName", "${KinesisStreamName}"],
+                    ["AWS/Kinesis", "IncomingRecords", "StreamName", "${KinesisStreamName}"]
+                  ],
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "region": "${AWS::Region}",
+                  "title": "Kinesis Incoming Data"
+                }
+              },
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 6,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    ["AWS/Kinesis", "ReadProvisionedThroughputExceeded", "StreamName", "${KinesisStreamName}"],
+                    ["AWS/Kinesis", "WriteProvisionedThroughputExceeded", "StreamName", "${KinesisStreamName}"]
+                  ],
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "region": "${AWS::Region}",
+                  "title": "Kinesis Throughput Exceeded"
+                }
+              },
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 12,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    ["AWS/S3", "BucketSizeBytes", "BucketName", "${S3BucketName}", {"Stat": "Average"}],
+                    ["AWS/S3", "NumberOfObjects", "BucketName", "${S3BucketName}", {"Stat": "Average"}]
+                  ],
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "region": "${AWS::Region}",
+                  "title": "S3 Data Lake Growth"
+                }
+              },
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 18,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    ["AWS/S3", "PutRequests", "BucketName", "${S3BucketName}", "Operation", "PutObject"],
+                    ["AWS/S3", "4xxErrors", "BucketName", "${S3BucketName}", "Operation", "PutObject"],
+                    ["AWS/S3", "5xxErrors", "BucketName", "${S3BucketName}", "Operation", "PutObject"]
+                  ],
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "region": "${AWS::Region}",
+                  "title": "S3 Write Operations & Errors"
+                }
+              },
+              {
+                "type": "alarm",
+                "x": 12,
+                "y": 0,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "title": "Ingestion Alarms Status",
+                  "alarms": [
+                    {"Fn::GetAtt": ["KinesisWriteThroughputExceededAlarm", "Arn"]},
+                    {"Fn::GetAtt": ["KinesisReadThroughputExceededAlarm", "Arn"]},
+                    {"Fn::GetAtt": ["FlinkJobRestartAlarm", "Arn"]},
+                    {"Fn::GetAtt": ["FlinkJobLatencyAlarm", "Arn"]},
+                    {"Fn::GetAtt": ["S3PutRequestErrorsAlarm", "Arn"]}
+                  ],
+                  "sortBy": "STATE",
+                  "region": "${AWS::Region}"
+                }
+              }
+            ]
+          }
