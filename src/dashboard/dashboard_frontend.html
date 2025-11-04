@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIS Analyst Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        h1 { color: #2c3e50; text-align: center; }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            align-items: center;
+        }
+        .controls label { font-weight: bold; color: #555; }
+        .controls input[type="number"],
+        .controls select,
+        .controls button {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .controls button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .controls button:hover { background-color: #2980b9; }
+        .controls button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .table-container {
+            overflow-x: auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 14px;
+            vertical-align: top;
+        }
+        th {
+            background-color: #eef;
+            font-weight: bold;
+            color: #444;
+        }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #777;
+        }
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            padding: 10px;
+            background-color: #fbe9e7;
+            border: 1px solid #e74c3c;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .flag-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+        }
+        .flag-list li {
+            background-color: #ecf0f1;
+            padding: 5px 8px;
+            margin-bottom: 3px;
+            border-radius: 3px;
+            white-space: nowrap; /* Prevent wrapping for small items */
+        }
+    </style>
+</head>
+<body>
+    <h1>ARIS Analyst Dashboard - Flagged Reviews</h1>
+
+    <div class="controls">
+        <div>
+            <label for="minScore">Min Abuse Score:</label>
+            <input type="number" id="minScore" value="0.0" step="0.1" min="0">
+        </div>
+        <div>
+            <label for="sortBy">Sort By:</label>
+            <select id="sortBy">
+                <option value="abuseScore">Abuse Score</option>
+                <option value="reviewDate">Review Date</option>
+            </select>
+        </div>
+        <div>
+            <label for="sortOrder">Order:</label>
+            <select id="sortOrder">
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+            </select>
+        </div>
+        <button onclick="fetchFlaggedReviews()">Apply Filters</button>
+    </div>
+
+    <div class="loading-indicator" id="loadingIndicator" style="display: none;">Loading reviews...</div>
+    <div class="error-message" id="errorMessage" style="display: none;"></div>
+
+    <div class="table-container">
+        <table id="reviewsTable">
+            <thead>
+                <tr>
+                    <th>Review ID</th>
+                    <th>Product ID</th>
+                    <th>Reviewer ID</th>
+                    <th>Abuse Score</th>
+                    <th>Review Text</th>
+                    <th>Flags</th>
+                    <th>Review Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Review rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        <button id="prevPage" onclick="loadPreviousPage()" disabled>Previous</button>
+        <button id="nextPage" onclick="loadNextPage()" disabled>Next</button>
+    </div>
+
+    <script>
+        // Replace with your actual API Gateway Invoke URL (e.g., from API Gateway console)
+        const API_ENDPOINT = 'YOUR_API_GATEWAY_INVOKE_URL/flagged-reviews'; 
+        let currentNextToken = null;
+        let pageHistory = [null]; // Stores nextTokens for backward navigation
+        let isLoading = false;
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            isLoading = show;
+        }
+
+        function showMessage(message, isError = false) {
+            const msgElement = document.getElementById('errorMessage');
+            msgElement.textContent = message;
+            msgElement.style.display = 'block';
+            msgElement.style.color = isError ? '#e74c3c' : '#27ae60';
+            msgElement.style.backgroundColor = isError ? '#fbe9e7' : '#eaf7f2';
+        }
+
+        async function fetchFlaggedReviews(isPaging = false) {
+            if (isLoading) return; // Prevent multiple requests
+
+            showLoading(true);
+
+            const minScore = document.getElementById('minScore').value;
+            const sortBy = document.getElementById('sortBy').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+            const url = new URL(API_ENDPOINT);
+            url.searchParams.append('minAbuseScore', minScore);
+            url.searchParams.append('sortBy', sortBy);
+            url.searchParams.append('sortOrder', sortOrder);
+            url.searchParams.append('limit', 20); // Example limit per page
+
+            let requestToken = null;
+            if (isPaging && currentNextToken) {
+                requestToken = currentNextToken;
+                url.searchParams.append('lastKey', requestToken);
+            } else if (!isPaging) { // New filter application, reset pagination
+                currentNextToken = null;
+                pageHistory = [null]; // Reset history
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorBody.error || 'Unknown error'}`);
+                }
+                const data = await response.json();
+                renderReviews(data.reviews);
+                currentNextToken = data.nextToken; // Update for next page
+
+                document.getElementById('nextPage').disabled = !currentNextToken;
+                document.getElementById('prevPage').disabled = pageHistory.length <= 1;
+
+            } catch (error) {
+                console.error("Error fetching flagged reviews:", error);
+                showMessage(`Failed to fetch reviews: ${error.message}`, true);
+                renderReviews([]); // Clear table on error
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderReviews(reviews) {
+            const tbody = document.getElementById('reviewsTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = ''; // Clear existing rows
+
+            if (reviews.length === 0) {
+                const row = tbody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 7;
+                cell.textContent = "No flagged reviews found matching your criteria.";
+                cell.style.textAlign = "center";
+                cell.style.padding = "20px";
+                return;
+            }
+
+            reviews.forEach(review => {
+                const row = tbody.insertCell();
+                row.insertCell().textContent = review.reviewId || 'N/A';
+                row.insertCell().textContent = review.productId || 'N/A';
+                row.insertCell().textContent = review.reviewerId || 'N/A';
+                row.insertCell().textContent = review.abuseScore ? review.abuseScore.toFixed(2) : '0.00';
+                row.insertCell().textContent = (review.reviewText && review.reviewText.length > 100)
+                                                ? review.reviewText.substring(0, 97) + '...'
+                                                : review.reviewText || 'N/A';
+                const flagsCell = row.insertCell();
+                if (review.flagDetails && review.flagDetails.length > 0) {
+                    const ul = document.createElement('ul');
+                    ul.className = 'flag-list';
+                    review.flagDetails.forEach(flag => {
+                        const li = document.createElement('li');
+                        li.textContent = `${flag.ruleId} (Score: ${flag.score ? flag.score.toFixed(2) : 'N/A'})`;
+                        ul.appendChild(li);
+                    });
+                    flagsCell.appendChild(ul);
+                } else {
+                    flagsCell.textContent = 'None';
+                }
+                row.insertCell().textContent = review.reviewDate ? new Date(review.reviewDate).toLocaleString() : 'N/A';
+            });
+        }
+
+        function loadNextPage() {
+            if (currentNextToken) {
+                pageHistory.push(currentNextToken); // Save current token before moving next
+                fetchFlaggedReviews(true);
+            }
+        }
+
+        function loadPreviousPage() {
+            if (pageHistory.length > 1) {
+                const lastToken = pageHistory.pop(); // Remove current token
+                currentNextToken = pageHistory[pageHistory.length - 1]; // Set to previous token
+                fetchFlaggedReviews(true);
+            }
+        }
+
+        // Initial load when the page is ready
+        document.addEventListener('DOMContentLoaded', () => fetchFlaggedReviews());
+    </script>
+</body>
+</html>
