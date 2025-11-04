@@ -1,0 +1,12 @@
+{
+  "title": "Seller Schema",
+  "type": "object",
+  "properties": {
+    "seller_id": { "type": "string", "format": "uuid" },
+    "seller_name": { "type": "string" },
+    "country": { "type": "string" },
+    "registration_date": { "type": "string", "format": "date-time" },
+    "total_products_sold": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["seller_id", "seller_name", "registration_date"]
+}
