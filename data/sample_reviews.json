@@ -1,0 +1,35 @@
+[
+  {
+    "review_id": "R12345",
+    "product_id": "PABCDE",
+    "reviewer_id": "RA1B2C3",
+    "review_text": "This product is absolutely amazing! Best purchase ever. Highly recommend.",
+    "overall_rating": 5,
+    "review_date": "2023-10-26T10:00:00Z",
+    "verified_purchase": true,
+    "reviewer_name": "John Doe",
+    "reviewer_profile_link": "http://example.com/john"
+  },
+  {
+    "review_id": "R67890",
+    "product_id": "PFGHIJ",
+    "reviewer_id": "RD4E5F6",
+    "review_text": "The item arrived quickly and works as expected. Good value.",
+    "overall_rating": 4,
+    "review_date": "2023-10-25T15:30:00Z",
+    "verified_purchase": false,
+    "reviewer_name": "Jane Smith",
+    "reviewer_profile_link": "http://example.com/jane"
+  },
+  {
+    "review_id": "R10111",
+    "product_id": "PABCDE",
+    "reviewer_id": "RA1B2C3",
+    "review_text": "Another fantastic product from this brand. I love it!",
+    "overall_rating": 5,
+    "review_date": "2023-10-27T11:00:00Z",
+    "verified_purchase": true,
+    "reviewer_name": "John Doe",
+    "reviewer_profile_link": "http://example.com/john"
+  }
+]
