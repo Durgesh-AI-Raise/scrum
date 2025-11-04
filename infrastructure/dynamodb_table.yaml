@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template for the Amazon Review Raw Data DynamoDB Table.
+
+Resources:
+  AmazonReviewsRawTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: amazon-reviews-raw
+      AttributeDefinitions:
+        - AttributeName: review_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: review_id
+          KeyType: HASH # Partition Key
+      BillingMode: PAY_PER_REQUEST # On-demand capacity mode
+      StreamSpecification: # Enable DynamoDB Streams for potential future processing
+        StreamViewType: NEW_AND_OLD_IMAGES # Captures both new and old item images
+      Tags:
+        - Key: Project
+          Value: AmazonReviewTrustSafety
+
+Outputs:
+  TableName:
+    Description: The name of the DynamoDB table.
+    Value: !Ref AmazonReviewsRawTable
+  TableArn:
+    Description: The ARN of the DynamoDB table.
+    Value: !GetAtt AmazonReviewsRawTable.Arn
