@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReviewData",
+  "description": "Schema for ingested product review data",
+  "type": "object",
+  "required": [
+    "reviewId",
+    "productId",
+    "reviewerId",
+    "rating",
+    "reviewText",
+    "reviewDate",
+    "source"
+  ],
+  "properties": {
+    "reviewId": {
+      "type": "string",
+      "description": "Unique identifier for the review"
+    },
+    "productId": {
+      "type": "string",
+      "description": "Identifier for the product being reviewed"
+    },
+    "reviewerId": {
+      "type": "string",
+      "description": "Identifier for the reviewer"
+    },
+    "rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Star rating of the review (1-5)"
+    },
+    "reviewText": {
+      "type": "string",
+      "description": "Full text content of the review"
+    },
+    "reviewDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the review was created"
+    },
+    "source": {
+      "type": "string",
+      "description": "Source platform of the review (e.g., 'amazon', 'ebay')"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional additional metadata about the review",
+      "properties": {
+        "helpfulVotes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of helpful votes for the review"
+        },
+        "isVerifiedPurchase": {
+          "type": "boolean",
+          "description": "Indicates if the reviewer is a verified purchaser"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
