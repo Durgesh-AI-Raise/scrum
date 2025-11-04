@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIS Moderator Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .review-text-snippet { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+</head>
+<body>
+    <h1>ARIS Moderator Dashboard</h1>
+    <h2>Flagged Reviews</h2>
+    <table id="flaggedReviewsTable">
+        <thead>
+            <tr>
+                <th>Review ID</th>
+                <th>Product ID</th>
+                <th>Reviewer ID</th>
+                <th>Rating</th>
+                <th>Review Text</th>
+                <th>Timestamp</th>
+                <th>Flag Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Flagged reviews will be loaded here by JavaScript -->
+            <tr><td colspan="7">Loading flagged reviews...</td></tr>
+        </tbody>
+    </table>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
